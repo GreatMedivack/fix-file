@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: fix-file
+  name: fix-file
+  namespace: medods
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: fix-file
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    type: fix-file
+  name: fix-file
+  namespace: medods
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fix-file
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: fix-file
+      name: fix-file
+    spec:
+      containers:
+      - image: greatmedivack/fix_file:5
+        imagePullPolicy: IfNotPresent
+        name: fix-file
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+---            
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: fix-file-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+  namespace: medods
+spec:
+  tls:
+  - hosts:
+    - fix-file.medods.ru
+    secretName: default-server-secret
+  rules:
+  - host: fix-file.medods.ru
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: fix-file
+          servicePort: 8080
