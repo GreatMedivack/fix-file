@@ -6,10 +6,11 @@ def create_contacts_list(source_file)
   result = CSV.open(file, 'w', col_sep: ';', headers: true)
 
   tmp_row = []
-
+  companies = read_companies
   CSV.readlines(source_file).each do |row|
+      next unless companies.include? row[5]
       contact_name = row[2].to_s.strip
-      position = row[57].to_s.strip
+      position = row[59].to_s.strip
       #Emails
       emails = []
     	emails << filter_emails(row[24])
@@ -29,13 +30,13 @@ def create_contacts_list(source_file)
 
       array = 
             if emails.size >= phones.size
-              emails.each_with_index.map {|x, i| [contact_name.to_s,row[57].to_s,x.to_s,phones[i].to_s]}
+              emails.each_with_index.map {|x, i| [contact_name.to_s,position.to_s,row[5].to_s,x.to_s,phones[i].to_s]}
             else
-              phones.each_with_index.map {|x, i| [position.to_s,row[57].to_s,emails[i].to_s,x.to_s]}
+              phones.each_with_index.map {|x, i| [contact_name.to_s,position.to_s,row[5].to_s,emails[i].to_s,x.to_s]}
             end
 
       array.each do |array|
-        result << array.flatten unless (array[2].empty? && array[3].empty?) || (array[0].empty? && array[1].empty?)
+        result << array.flatten unless (array[3].empty? && array[4].empty?) || (array[0].empty? && array[1].empty?)
       end  
 
     end
@@ -51,4 +52,13 @@ def filter_phones(string)
 	string = "" if string.nil?
 	tmp = string.split(',').map {|phone| phone.gsub(/\'/,'')}
 	tmp.select { |line| line =~ VALID_PHONE_NUMBER_REGEX }
+end
+
+def read_companies
+  res = []
+  file = File.open('./public/file.csv','r')
+  CSV.readlines(file).each do |row|
+    res << row[0]
+  end
+  res.flatten
 end

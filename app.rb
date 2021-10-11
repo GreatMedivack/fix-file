@@ -4,6 +4,7 @@ require 'sinatra'
 require './lib/plan_fact.rb'
 require './lib/emails.rb'
 require './lib/contacts.rb'
+require './lib/companies.rb'
 
 set :bind, '0.0.0.0'
 set :port, 8080
@@ -29,8 +30,18 @@ get '/contacts' do
   erb :contacts_form
 end
 
+get '/companies' do 
+  erb :companies_form
+end
+
 get '/plan_fact' do 
   erb :plan_fact_form
+end
+
+post '/generate_companies' do 
+  file = params[:file][:tempfile]
+  create_companies_list(file)
+  erb :contacts_form
 end
 
 post '/generate_emails' do 
